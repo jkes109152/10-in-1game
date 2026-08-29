@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="十款不用下載、剛好一局的瀏覽器小遊戲。"
+    />
+    <title>十合一小遊戲｜Arcade Ten</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="回到十合一小遊戲首頁">
+        <span class="brand-mark" aria-hidden="true">✦</span>
+        <span>
+          <strong>十合一</strong>
+          <small>ARCADE</small>
+        </span>
+      </a>
+      <div class="header-stats" aria-label="玩家統計">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span><strong id="header-completed">0</strong> 局已完成</span>
+        <span class="header-divider" aria-hidden="true"></span>
+        <span><strong id="header-bests">0</strong> 個最佳</span>
+      </div>
+    </header>
+
+    <main id="top" class="page-shell">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> NO LOGIN · JUST PLAY</p>
+          <h1 id="hero-title">十款小遊戲，<br /><em>剛好一局。</em></h1>
+          <p class="hero-description">
+            把零碎時間，交給一場小小的勝負。反應、記憶、策略與手感，選一款，現在就開玩。
+          </p>
+          <div class="hero-actions">
+            <button class="button button-primary" id="start-featured" type="button">
+              開始挑戰 <span aria-hidden="true">↗</span>
+            </button>
+            <button class="button button-ghost" id="scroll-games" type="button">
+              看全部遊戲 <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+          <div class="hero-note">
+            <span class="note-icon" aria-hidden="true">◒</span>
+            <span>最佳紀錄只存在你的瀏覽器裡。</span>
+          </div>
+        </div>
+
+        <article class="feature-card" id="featured-card" aria-label="今日推薦：反應脈衝">
+          <div class="feature-grid" aria-hidden="true"></div>
+          <div class="feature-orb feature-orb-one" aria-hidden="true"></div>
+          <div class="feature-orb feature-orb-two" aria-hidden="true"></div>
+          <div class="feature-topline">
+            <span class="feature-label">今日推薦</span>
+            <span class="feature-index">01 / 10</span>
+          </div>
+          <div class="feature-icon" aria-hidden="true">⚡</div>
+          <h2>反應脈衝</h2>
+          <p>等它亮起的那一刻，看看你的手速有多快。</p>
+          <div class="feature-footer">
+            <span>一局約 30 秒</span>
+            <span class="feature-arrow" aria-hidden="true">↗</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="arcade-section" id="games" aria-labelledby="games-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE FULL ARCADE</p>
+            <h2 id="games-title">今天玩哪個？</h2>
+          </div>
+          <p class="section-meta"><span class="meta-pulse" aria-hidden="true"></span> 10 款 · 隨時開局</p>
+        </div>
+
+        <div class="game-grid">
+          <button class="game-card accent-coral" data-game-id="reaction" type="button">
+            <span class="card-number">01</span><span class="game-icon" aria-hidden="true">⚡</span>
+            <span class="game-card-copy"><strong>反應脈衝</strong><small>等亮就點，挑戰你的極限反射。</small></span>
+            <span class="card-meta">反應 · 30 秒</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-lavender" data-game-id="memory" type="button">
+            <span class="card-number">02</span><span class="game-icon" aria-hidden="true">🧠</span>
+            <span class="game-card-copy"><strong>記憶翻牌</strong><small>翻出八組相同圖示，別讓步數失控。</small></span>
+            <span class="card-meta">記憶 · 3 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-mint" data-game-id="snake" type="button">
+            <span class="card-number">03</span><span class="game-icon" aria-hidden="true">🐍</span>
+            <span class="game-card-copy"><strong>霓虹貪食蛇</strong><small>吃到發光方塊，別撞上自己。</small></span>
+            <span class="card-meta">手感 · 2 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-amber" data-game-id="mines" type="button">
+            <span class="card-number">04</span><span class="game-icon" aria-hidden="true">💣</span>
+            <span class="game-card-copy"><strong>迷你踩地雷</strong><small>找出安全格，旗標留給真正的地雷。</small></span>
+            <span class="card-meta">策略 · 2 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-sky" data-game-id="merge" type="button">
+            <span class="card-number">05</span><span class="game-icon" aria-hidden="true">🔢</span>
+            <span class="game-card-copy"><strong>2048 輕裝版</strong><small>滑動、合併，試著碰到 2048。</small></span>
+            <span class="card-meta">策略 · 不限時</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-coral" data-game-id="whack" type="button">
+            <span class="card-number">06</span><span class="game-icon" aria-hidden="true">🎯</span>
+            <span class="game-card-copy"><strong>打地鼠</strong><small>三十秒內，抓住每一隻冒頭的地鼠。</small></span>
+            <span class="card-meta">手速 · 30 秒</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-purple" data-game-id="color" type="button">
+            <span class="card-number">07</span><span class="game-icon" aria-hidden="true">🎨</span>
+            <span class="game-card-copy"><strong>色彩辨識</strong><small>看文字的顏色，不要被文字騙了。</small></span>
+            <span class="card-meta">專注 · 10 題</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-mint" data-game-id="tictactoe" type="button">
+            <span class="card-number">08</span><span class="game-icon" aria-hidden="true">✕</span>
+            <span class="game-card-copy"><strong>井字對決</strong><small>三子連線，擊敗不會手下留情的電腦。</small></span>
+            <span class="card-meta">對戰 · 1 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-amber" data-game-id="stack" type="button">
+            <span class="card-number">09</span><span class="game-icon" aria-hidden="true">🧱</span>
+            <span class="game-card-copy"><strong>完美堆疊</strong><small>抓準節奏，讓每一層都落在正中央。</small></span>
+            <span class="card-meta">節奏 · 2 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+          <button class="game-card accent-sky" data-game-id="number" type="button">
+            <span class="card-number">10</span><span class="game-icon" aria-hidden="true">🔐</span>
+            <span class="game-card-copy"><strong>數字密碼</strong><small>八次機會，猜中藏在 1–50 的數字。</small></span>
+            <span class="card-meta">推理 · 2 分鐘</span><span class="card-arrow" aria-hidden="true">↗</span>
+          </button>
+        </div>
+      </section>
+
+      <footer class="site-footer">
+        <span>十合一小遊戲 <span aria-hidden="true">·</span> 2026</span>
+        <span>一局接一局，剛剛好。</span>
+      </footer>
+    </main>
+
+    <div class="game-modal" id="game-panel" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="panel-title">
+      <div class="modal-backdrop" id="modal-backdrop"></div>
+      <div class="modal-shell">
+        <header class="modal-header">
+          <div>
+            <p class="modal-kicker" id="panel-kicker">遊戲 01 / 10</p>
+            <h2 id="panel-title" tabindex="-1">反應脈衝</h2>
+          </div>
+          <button class="close-button" id="close-game" type="button" aria-label="關閉遊戲面板">×</button>
+        </header>
+        <div class="game-stage" id="game-stage"></div>
+        <div class="game-result" id="game-result" hidden aria-live="polite">
+          <div>
+            <p class="result-kicker">本局結果</p>
+            <strong id="result-title">做得漂亮。</strong>
+            <p id="result-copy">準備好再來一局了嗎？</p>
+          </div>
+          <button class="button button-primary" id="restart-game" type="button">再玩一次 <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sr-only" id="live-region" aria-live="polite"></div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

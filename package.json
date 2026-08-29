@@ -1,0 +1,10 @@
+{
+  "name": "ten-in-one-game",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --check app.js && node --test tests/*.test.mjs && node scripts/verify.mjs",
+    "check": "node --check app.js && node scripts/verify.mjs"
+  }
+}
