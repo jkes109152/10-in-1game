@@ -29,5 +29,5 @@
 - [x] T016 [US2] 在 `tests/game-rules.test.mjs` 覆蓋洗牌、2048 合併、地雷鄰居與安全邊界。
 - [x] T017 執行 Node 語法檢查、純規則測試、十款遊戲靜態驗收與靜態伺服器 smoke test；自動檢查全部通過。
 - [x] T018 同步 SDD 任務與完成狀態，完成手動文件一致性分析（見 `analysis.md`）。
-- [ ] T019 以 GitHub plugin 將變更提交至 `001-ten-in-one-arcade`、建立 PR 並等待 workflow。
-- [ ] T020 審閱 checks 與 PR 狀態，在保護條件允許時合併至 `main`。
+- [x] T019 以 GitHub plugin 將變更提交至 `001-ten-in-one-arcade`、建立 PR 並等待 workflow；PR #1 的 SDD checks 通過。
+- [x] T020 審閱 checks 與 PR 狀態，在保護條件允許時合併至 `main`；已完成 squash merge。

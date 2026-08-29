@@ -2,7 +2,7 @@
 
 分析日期：2026-08-29（UTC）
 
-由於目標 repository 為空專案且本執行環境未提供 `$speckit-analyze` executor，本次以同一份規格、計畫與任務文件進行等價的唯讀一致性分析；未修改分析中的來源文件。
+由於目標 repository 為空專案且本執行環境未提供 `$speckit-analyze` executor，本次以同一份規格、計畫與任務文件進行等價的一致性分析，並在 GitHub 交付後回填任務完成狀態。
 
 ## 覆蓋矩陣
 
@@ -25,6 +25,12 @@
 - MEDIUM：0
 - LOW：0
 - 未解決標記：0（未發現需求待釐清或樣板占位符）
+
+## 交付驗證
+
+- GitHub PR #1 已建立、workflow `SDD checks` 通過，並以 squash merge 合併至 `main`。
+- 合併後再次讀回 `main`，確認遠端 HEAD 與合併提交一致。
+- Sites 建站專案已建立，但初始化階段無法取得 CLI 所需登入授權，因此尚未產生可驗證的 production URL；未將未驗證狀態宣稱為已部署。
 
 ## 已知人工驗收限制
 
