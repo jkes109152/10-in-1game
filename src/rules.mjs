@@ -117,3 +117,40 @@ export function canMerge(grid) {
   }
   return false;
 }
+
+export function canChangeDirection(currentDirection, requestedDirection) {
+  const opposite = {
+    up: "down",
+    down: "up",
+    left: "right",
+    right: "left",
+  };
+  if (!opposite[currentDirection] || !opposite[requestedDirection]) return false;
+  return requestedDirection !== opposite[currentDirection];
+}
+
+export function snakeWouldCollide(snake, head, growing = false) {
+  const occupiedBody = growing ? snake : snake.slice(0, -1);
+  return occupiedBody.some((part) => part.x === head.x && part.y === head.y);
+}
+
+export function normalizePlayerStats(value, gameIds) {
+  const source = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const sourceScores =
+    source.bestScores && typeof source.bestScores === "object" && !Array.isArray(source.bestScores)
+      ? source.bestScores
+      : {};
+  const bestScores = Object.fromEntries(
+    gameIds.map((gameId) => {
+      const score = sourceScores[gameId];
+      return [gameId, Number.isFinite(score) && score >= 0 ? score : 0];
+    }),
+  );
+
+  return {
+    completed:
+      Number.isSafeInteger(source.completed) && source.completed >= 0 ? source.completed : 0,
+    bestScores,
+    lastPlayedAt: typeof source.lastPlayedAt === "string" ? source.lastPlayedAt : null,
+  };
+}

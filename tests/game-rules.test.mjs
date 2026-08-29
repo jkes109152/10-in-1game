@@ -1,12 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  canChangeDirection,
   canMerge,
   createMinesBoard,
   mergeLine,
   moveGrid,
   neighbors,
+  normalizePlayerStats,
   shuffle,
+  snakeWouldCollide,
 } from "../src/rules.mjs";
 
 test("shuffle 保留所有元素且不改動原陣列", () => {
@@ -62,4 +65,58 @@ test("canMerge 可識別空格、相鄰相同值與已鎖死棋盤", () => {
   assert.equal(canMerge([[0, 2], [4, 8]]), true);
   assert.equal(canMerge([[2, 2], [4, 8]]), true);
   assert.equal(canMerge([[2, 4], [8, 16]]), false);
+});
+
+test("canChangeDirection 依目前移動方向阻止快速 180 度反轉", () => {
+  assert.equal(canChangeDirection("right", "up"), true);
+  assert.equal(canChangeDirection("right", "left"), false);
+  assert.equal(canChangeDirection("up", "up"), true);
+  assert.equal(canChangeDirection("invalid", "left"), false);
+});
+
+test("snakeWouldCollide 允許移入離開中的尾端，但成長時仍視為碰撞", () => {
+  const snake = [
+    { x: 2, y: 1 },
+    { x: 2, y: 2 },
+    { x: 1, y: 2 },
+    { x: 1, y: 1 },
+  ];
+  assert.equal(snakeWouldCollide(snake, { x: 1, y: 1 }, false), false);
+  assert.equal(snakeWouldCollide(snake, { x: 1, y: 1 }, true), true);
+  assert.equal(snakeWouldCollide(snake, { x: 2, y: 2 }, false), true);
+});
+
+test("normalizePlayerStats 過濾型別錯誤與未知的本機資料", () => {
+  const gameIds = ["reaction", "snake"];
+  assert.deepEqual(normalizePlayerStats(null, gameIds), {
+    completed: 0,
+    bestScores: { reaction: 0, snake: 0 },
+    lastPlayedAt: null,
+  });
+  assert.deepEqual(
+    normalizePlayerStats(
+      {
+        completed: "7",
+        bestScores: { reaction: "180", snake: -1, unknown: 999 },
+        lastPlayedAt: 123,
+      },
+      gameIds,
+    ),
+    {
+      completed: 0,
+      bestScores: { reaction: 0, snake: 0 },
+      lastPlayedAt: null,
+    },
+  );
+  assert.deepEqual(
+    normalizePlayerStats(
+      { completed: 4, bestScores: { reaction: 180, snake: 30 }, lastPlayedAt: "2026-08-29T00:00:00.000Z" },
+      gameIds,
+    ),
+    {
+      completed: 4,
+      bestScores: { reaction: 180, snake: 30 },
+      lastPlayedAt: "2026-08-29T00:00:00.000Z",
+    },
+  );
 });
