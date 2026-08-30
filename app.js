@@ -1,9 +1,12 @@
 import {
+  canChangeDirection,
   canMerge,
   createMinesBoard,
   moveGrid,
   neighbors,
+  normalizePlayerStats,
   shuffle,
+  snakeWouldCollide,
 } from "./src/rules.mjs";
 
 const STORAGE_KEY = "arcade-10-best-scores";
@@ -33,12 +36,6 @@ const gameDefinitions = {
   number: { name: "數字密碼", number: "10", meta: "推理 · 2 分鐘" },
 };
 
-const defaultStats = {
-  completed: 0,
-  bestScores: Object.fromEntries(GAME_IDS.map((id) => [id, 0])),
-  lastPlayedAt: null,
-};
-
 const dom = {
   panel: document.querySelector("#game-panel"),
   panelTitle: document.querySelector("#panel-title"),
@@ -62,20 +59,20 @@ const appState = {
   session: null,
 };
 
+const backgroundRegions = document.querySelectorAll(".site-header, #top");
+
+function setBackgroundInert(inert) {
+  backgroundRegions.forEach((region) => {
+    region.inert = inert;
+  });
+}
+
 function loadStats() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
-    return {
-      ...defaultStats,
-      ...stored,
-      bestScores: { ...defaultStats.bestScores, ...(stored?.bestScores ?? {}) },
-    };
+    return normalizePlayerStats(stored, GAME_IDS);
   } catch {
-    return {
-      completed: 0,
-      bestScores: { ...defaultStats.bestScores },
-      lastPlayedAt: null,
-    };
+    return normalizePlayerStats(null, GAME_IDS);
   }
 }
 
@@ -97,9 +94,9 @@ function updateHeaderStats() {
 
 function announce(message) {
   dom.live.textContent = "";
-  window.setTimeout(() => {
+  queueMicrotask(() => {
     dom.live.textContent = message;
-  }, 20);
+  });
 }
 
 function createSession() {
@@ -212,6 +209,7 @@ function openGame(gameId, trigger = null) {
   dom.panel.hidden = false;
   dom.panel.setAttribute("aria-hidden", "false");
   document.body.classList.add("is-modal-open");
+  setBackgroundInert(true);
   const starter = {
     reaction: startReactionGame,
     memory: startMemoryGame,
@@ -225,9 +223,9 @@ function openGame(gameId, trigger = null) {
     number: startNumberGame,
   }[gameId];
   starter();
-  window.requestAnimationFrame(() => {
+  appState.session?.timeout(() => {
     dom.panelTitle.focus();
-  });
+  }, 0);
 }
 
 function closeGame() {
@@ -241,6 +239,7 @@ function closeGame() {
   dom.panel.hidden = true;
   dom.panel.setAttribute("aria-hidden", "true");
   document.body.classList.remove("is-modal-open");
+  setBackgroundInert(false);
   trigger?.focus();
 }
 
@@ -289,7 +288,7 @@ function startReactionGame() {
     }, randomInt(900, 2300));
   };
 
-  session.listen(target, "pointerdown", () => {
+  session.listen(target, "click", () => {
     if (phase === "waiting") {
       phase = "early";
       if (timer) session.cancel(timer);
@@ -334,6 +333,7 @@ function startMemoryGame() {
   const startedAt = Date.now();
 
   const render = () => {
+    const focusedIndex = document.activeElement?.dataset?.index;
     board.innerHTML = cards
       .map((symbol, index) => {
         const open = flipped.includes(index) || matched.has(index);
@@ -345,6 +345,9 @@ function startMemoryGame() {
       .join("");
     updateStat("memory-matched", `${matched.size / 2} / 8`);
     updateStat("memory-moves", moves);
+    if (focusedIndex !== undefined) {
+      board.querySelector(`[data-index="${focusedIndex}"]`)?.focus();
+    }
   };
 
   const checkPair = () => {
@@ -376,7 +379,7 @@ function startMemoryGame() {
     render();
   };
 
-  session.listen(board, "pointerdown", (event) => {
+  session.listen(board, "click", (event) => {
     const tile = event.target.closest("[data-index]");
     if (!tile || locked) return;
     const index = Number(tile.dataset.index);
@@ -470,8 +473,7 @@ function startSnakeGame() {
   };
 
   const setDirection = (value) => {
-    const opposite = { up: "down", down: "up", left: "right", right: "left" };
-    if (value !== opposite[nextDirection]) nextDirection = value;
+    if (canChangeDirection(direction, value)) nextDirection = value;
   };
 
   const tick = () => {
@@ -479,15 +481,16 @@ function startSnakeGame() {
     direction = nextDirection;
     const delta = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[direction];
     const head = { x: snake[0].x + delta[0], y: snake[0].y + delta[1] };
+    const growing = samePoint(head, food);
     const hitWall = head.x < 0 || head.x >= size || head.y < 0 || head.y >= size;
-    const hitSelf = snake.some((part) => samePoint(part, head));
+    const hitSelf = snakeWouldCollide(snake, head, growing);
     if (hitWall || hitSelf) {
       ended = true;
       finishGame({ title: "蛇蛇撞到了。", copy: `你收集了 ${score} 分，下一局再繞漂亮一點。`, score });
       return;
     }
     snake.unshift(head);
-    if (samePoint(head, food)) {
+    if (growing) {
       score += 10;
       food = randomFood();
       updateStat("snake-score", score);
@@ -522,7 +525,7 @@ function startSnakeGame() {
   });
   session.listen(reset, "click", resetGame);
   directionButtons.forEach((button) => {
-    session.listen(button, "pointerdown", () => {
+    session.listen(button, "click", () => {
       if (button.dataset.direction !== "center") setDirection(button.dataset.direction);
     });
   });
@@ -554,6 +557,7 @@ function startMinesGame() {
   const hint = document.querySelector("#mines-hint");
 
   const render = () => {
+    const focusedIndex = document.activeElement?.dataset?.mineIndex;
     const safeRevealed = boardState.filter((cell) => cell.revealed && !cell.mine).length;
     const flags = boardState.filter((cell) => cell.flagged).length;
     updateStat("mines-left", Math.max(0, mineCount - flags));
@@ -571,6 +575,9 @@ function startMinesGame() {
         return `<button class="${classes}" data-mine-index="${index}" type="button" aria-label="第 ${index + 1} 格：${label}">${value}</button>`;
       })
       .join("");
+    if (focusedIndex !== undefined) {
+      grid.querySelector(`[data-mine-index="${focusedIndex}"]`)?.focus();
+    }
   };
 
   const reveal = (startIndex) => {
@@ -610,7 +617,7 @@ function startMinesGame() {
     hint.textContent = flagMode ? "現在點格子會插旗或取消旗標。" : "現在點格子會揭開安全區。";
   });
 
-  session.listen(grid, "pointerdown", (event) => {
+  session.listen(grid, "click", (event) => {
     if (ended) return;
     const button = event.target.closest("[data-mine-index]");
     if (!button) return;
@@ -724,7 +731,7 @@ function startMergeGame() {
     }
   });
   document.querySelectorAll("[data-merge-direction]").forEach((button) => {
-    session.listen(button, "pointerdown", () => move(button.dataset.mergeDirection));
+    session.listen(button, "click", () => move(button.dataset.mergeDirection));
   });
   reset();
 }
@@ -736,6 +743,7 @@ function startWhackGame() {
   let score = 0;
   let activeIndex = -1;
   let ended = false;
+  let deadline = 0;
 
   setStage(
     shellMarkup(
@@ -765,6 +773,7 @@ function startWhackGame() {
     updateStat("whack-time", `${remaining}s`);
   };
   const resetGame = () => {
+    deadline = performance.now() + duration * 1000;
     remaining = duration;
     score = 0;
     ended = false;
@@ -772,7 +781,7 @@ function startWhackGame() {
     render();
   };
 
-  session.listen(board, "pointerdown", (event) => {
+  session.listen(board, "click", (event) => {
     if (ended) return;
     const cell = event.target.closest("[data-mole-index]");
     if (!cell) return;
@@ -787,16 +796,19 @@ function startWhackGame() {
   });
   session.interval(() => {
     if (ended) return;
-    remaining -= 1;
-    updateStat("whack-time", `${remaining}s`);
-    if (remaining <= 0) {
+    const nextRemaining = Math.max(0, Math.ceil((deadline - performance.now()) / 1000));
+    if (nextRemaining !== remaining) {
+      remaining = nextRemaining;
+      updateStat("whack-time", `${remaining}s`);
+    }
+    if (performance.now() >= deadline) {
       ended = true;
       finishGame({ title: "時間到！", copy: `你在三十秒內打中了 ${score / 10} 隻地鼠。`, score });
     }
-  }, 1000);
+  }, 250);
   session.interval(chooseMole, 760);
   session.listen(reset, "click", resetGame);
-  render();
+  resetGame();
 }
 
 function startColorGame() {
@@ -825,6 +837,7 @@ function startColorGame() {
   const options = document.querySelector("#color-options");
 
   const nextRound = () => {
+    const restoreOptionFocus = options.contains(document.activeElement);
     word = colors[randomInt(0, colors.length - 1)];
     actual = colors[randomInt(0, colors.length - 1)];
     wordElement.textContent = word.name;
@@ -832,9 +845,10 @@ function startColorGame() {
     options.innerHTML = colors.map((color) => `<button class="color-option" data-color-id="${color.id}" type="button" style="--option-color: ${color.value}">${color.name}</button>`).join("");
     updateStat("color-round", `${round + 1} / 10`);
     updateStat("color-score", correct);
+    if (restoreOptionFocus) options.querySelector("button")?.focus();
   };
 
-  session.listen(options, "pointerdown", (event) => {
+  session.listen(options, "click", (event) => {
     const button = event.target.closest("[data-color-id]");
     if (!button) return;
     if (button.dataset.colorId === actual.id) correct += 1;
@@ -853,6 +867,7 @@ function startTictactoeGame() {
   const session = startSession();
   let cells = Array(9).fill("");
   let ended = false;
+  let awaitingAi = false;
 
   setStage(
     shellMarkup(
@@ -872,8 +887,10 @@ function startTictactoeGame() {
   ];
   const winner = (mark) => winningLines.some((line) => line.every((index) => cells[index] === mark));
   const openCells = () => cells.map((cell, index) => cell ? null : index).filter((index) => index !== null);
-  const render = () => {
-    board.innerHTML = cells.map((cell, index) => `<button class="ttt-cell ${cell === "O" ? "is-o" : ""}" data-ttt-index="${index}" type="button" ${cell ? "disabled" : ""} aria-label="第 ${index + 1} 格${cell ? `：${cell}` : "，空格"}">${cell}</button>`).join("");
+  const render = ({ focusOpenCell = false } = {}) => {
+    board.setAttribute("aria-busy", String(awaitingAi));
+    board.innerHTML = cells.map((cell, index) => `<button class="ttt-cell ${cell === "O" ? "is-o" : ""}" data-ttt-index="${index}" type="button" ${cell || ended || awaitingAi ? "disabled" : ""} aria-label="第 ${index + 1} 格${cell ? `：${cell}` : "，空格"}">${cell}</button>`).join("");
+    if (focusOpenCell) board.querySelector("button:not(:disabled)")?.focus();
   };
   const aiPick = () => {
     const open = openCells();
@@ -907,8 +924,8 @@ function startTictactoeGame() {
     return false;
   };
 
-  session.listen(board, "pointerdown", (event) => {
-    if (ended) return;
+  session.listen(board, "click", (event) => {
+    if (ended || awaitingAi) return;
     const button = event.target.closest("[data-ttt-index]");
     if (!button) return;
     const index = Number(button.dataset.tttIndex);
@@ -916,12 +933,15 @@ function startTictactoeGame() {
     cells[index] = "X";
     render();
     if (afterMove("X")) return;
+    awaitingAi = true;
     hint.textContent = "電腦思考中…";
+    render();
     session.timeout(() => {
       if (ended) return;
       const aiIndex = aiPick();
       if (aiIndex >= 0) cells[aiIndex] = "O";
-      render();
+      awaitingAi = false;
+      render({ focusOpenCell: true });
       if (!afterMove("O")) hint.textContent = "輪到你了，選一格落子。";
     }, 380);
   });
@@ -1025,9 +1045,10 @@ function startStackGame() {
     }
   };
 
-  session.listen(placeButton, "pointerdown", place);
+  session.listen(placeButton, "click", place);
   session.listen(window, "keydown", (event) => {
-    if (event.code === "Space") {
+    const interactiveTarget = event.target.closest?.("button, input, select, textarea, a[href]");
+    if (event.code === "Space" && !interactiveTarget) {
       event.preventDefault();
       place();
     }
@@ -1079,7 +1100,7 @@ function startNumberGame() {
     hint.textContent = guess > target ? "太高了，往下猜。" : "太低了，往上猜。";
     input.select();
   });
-  window.setTimeout(() => input.focus(), 60);
+  session.timeout(() => input.focus(), 60);
 }
 
 document.querySelectorAll("[data-game-id]").forEach((card) => {
@@ -1091,7 +1112,11 @@ document.querySelector("#start-featured").addEventListener("click", () => {
 });
 
 document.querySelector("#scroll-games").addEventListener("click", () => {
-  document.querySelector("#games").scrollIntoView({ behavior: "smooth", block: "start" });
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  document.querySelector("#games").scrollIntoView({
+    behavior: reducedMotion ? "auto" : "smooth",
+    block: "start",
+  });
 });
 
 dom.close.addEventListener("click", closeGame);
