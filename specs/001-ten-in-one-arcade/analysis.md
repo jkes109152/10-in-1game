@@ -30,7 +30,7 @@
 
 - GitHub PR #1 已建立、workflow `SDD checks` 通過，並以 squash merge 合併至 `main`。
 - 合併後再次讀回 `main`，確認遠端 HEAD 與合併提交一致。
-- 本輪互動可靠性修正在本機完成語法、9/9 規則測試、靜態驗收與 HTTP 200 smoke；GitHub 修正 PR 將在 T026 建立並等待同一 workflow。
+- 本輪互動可靠性修正在本機完成語法、9/9 規則測試、靜態驗收與 HTTP 200 smoke；GitHub PR #3 已以 `002-interaction-reliability` 建立，`SDD checks` 通過，無 review／未解決 thread，且分支保護未啟用。
 - Sites 建站專案已建立，但初始化階段無法取得 CLI 所需登入授權，因此尚未產生可驗證的 production URL；未將未驗證狀態宣稱為已部署。
 
 ## 獨立小 AI 複驗
